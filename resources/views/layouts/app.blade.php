@@ -31,6 +31,11 @@
 
         <!-- Page Content -->
         <main>
+            <div class="pb-6">
+                <button id="export-button" class="bg-blue-600 text-white rounded px-4 py-3 mr-4" type="button">
+                    Start Export
+                </button>
+            </div>
             {{ $slot }}
         </main>
     </div>
@@ -38,6 +43,20 @@
 
 <script>
     window.addEventListener('DOMContentLoaded', function() {
+        window.Echo.private('App.Models.User.' + {{ auth()->id() }})
+            .listen('ExportFinishedEvent', (event) => {
+                let location = document.getElementsByTagName('main')[0];
+                let div = document.createElement('div');
+                div.style.width = '100%';
+                div.style.height = '32px';
+                div.style.textAlign = 'center';
+                div.style.lineHeight = '32px';
+                div.style.background = '#44ff44';
+                div.innerHTML = 'SUCCESS: Your export is finished. You can download it <a href="' + event
+                    .file_path + '">here</a>.';
+                location.insertBefore(div, location.firstChild);
+            });
+
         window.Echo.channel('system-maintenance')
             .listen('SystemMaintenanceEvent', (event) => {
                 let location = document.getElementsByTagName('main')[0];
@@ -50,6 +69,12 @@
                 div.innerHTML = 'WARNING: The system will go down for maintenance at ' + event.time + '.';
                 location.insertBefore(div, location.firstChild);
             });
+    });
+
+    var button = document.getElementById('export-button');
+
+    button.addEventListener('click', function() {
+        axios.post('/start-export');
     });
 </script>
 
